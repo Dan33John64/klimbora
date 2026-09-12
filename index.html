@@ -8,19 +8,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Klimbora">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" href="icons/icon-192.webp" type="image/webp">
-<meta name="description" content="A free swing-and-climb arcade game. Grab a block, swing right round it and let go: the block blasts and throws you up the shaft. 24 levels, 72 stars.">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<meta name="description" content="Two free arcade games in one. Climb a shaft by swinging round blocks and blasting them, or run straight through the Grand Canyon dodging what is in the way. Eleven real places, 24 levels, 72 stars.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://dan33john64.github.io/klimbora/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Klimbora">
-<meta property="og:title" content="Klimbora - a free swing-and-climb arcade game">
-<meta property="og:description" content="A free swing-and-climb arcade game. Grab a block, swing right round it and let go: the block blasts and throws you up the shaft. 24 levels, 72 stars.">
+<meta property="og:title" content="Klimbora - climb it, or run it">
+<meta property="og:description" content="Two free arcade games in one. Climb a shaft by swinging round blocks and blasting them, or run straight through the Grand Canyon dodging what is in the way. Eleven real places, 24 levels, 72 stars.">
 <meta property="og:url" content="https://dan33john64.github.io/klimbora/">
 <meta property="og:image" content="https://dan33john64.github.io/klimbora/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Klimbora">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
 {
@@ -29,15 +28,10 @@
   "name": "Klimbora",
   "url": "https://dan33john64.github.io/klimbora/",
   "image": "https://dan33john64.github.io/klimbora/og.png",
-  "description": "A free swing-and-climb arcade game. Grab a block, swing right round it and let go: the block blasts and throws you up the shaft. 24 levels, 72 stars.",
+  "description": "Two free arcade games in one. Climb a shaft by swinging round blocks and blasting them, or run straight through the Grand Canyon dodging what is in the way. Eleven real places, 24 levels, 72 stars.",
   "genre": [
     "Arcade",
     "Platformer"
-  ],
-  "gamePlatform": [
-    "Web browser",
-    "Android",
-    "iOS"
   ],
   "applicationCategory": "GameApplication",
   "operatingSystem": "Any",
@@ -53,6 +47,11 @@
 }
 </script>
 <style>
+/* Klimbora typefaces, snapshotted from Google Fonts (Baloo 2, Nunito -
+   both SIL Open Font License 1.1). The woff2 files sit beside this file.
+   Held here so a build never needs a network, and so the app ships the
+   exact cuts that were tested rather than whatever Google serves today. */
+
 @font-face {
   font-family: 'Baloo 2';
   font-style: normal;
@@ -842,6 +841,17 @@
   .swatches button:active{transform:scale(.9)}
   .swatches button.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.35),0 0 16px -2px #fff}
   .scenegrid{width:100%;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  /* Eleven places is taller than the panel. Every other tall panel here
+     scrolls the same way; the difference is that RUN is the whole point of
+     this one, so it sticks to the foot instead of sitting below the fold. */
+  #dash{justify-content:flex-start;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;gap:10px}
+  #dash .row2{position:sticky;bottom:-22px;width:100%;padding:10px 0 14px;z-index:2;
+    background:linear-gradient(180deg,rgba(12,22,84,0) 0%,rgba(12,22,84,.93) 34%,rgba(12,22,84,.97) 100%)}
+  .dashbest{font-family:var(--display);font-weight:800;font-size:15px;color:var(--dim);margin:-4px 0 2px}
+  .dashbest b{font-size:22px;color:var(--amber)}
+  .dashbest em{font-style:normal;font-size:13px;color:var(--dimmer)}
+  .btn.cyan{background:linear-gradient(180deg,#5AD8FF,#1E8FD0);box-shadow:0 5px 0 #14618F,0 10px 18px -6px rgba(6,12,44,.7)}
+  .btn.cyan:active{box-shadow:0 2px 0 #14618F,0 6px 12px -6px rgba(6,12,44,.7)}
   .scene{position:relative;pointer-events:auto;cursor:pointer;padding:0;border-radius:16px;overflow:hidden;
     border:3px solid rgba(150,178,255,.16);background:#0A1038;display:flex;flex-direction:column;
     font-family:var(--ui);transition:transform .08s,border-color .15s,box-shadow .15s}
@@ -929,7 +939,30 @@
       <button class="btn green hide" id="deep">DEEP SPACE</button>
     </div>
     <div class="hint" id="endlessNote">Clear 8 levels to unlock Endless</div>
+    <button class="btn cyan" id="openDash" style="margin-top:2px">DASH &#183; PICK A PLACE TO RUN</button>
     <button class="btn ghost" id="howto" style="margin-top:2px">HOW TO PLAY</button>
+  </div>
+
+  <div class="panel hide" id="dash">
+    <div class="blevel">Dash</div>
+    <div class="bsub">Pick a place. Run straight, dodge what is in the way.</div>
+    <div class="dashbest">Best <b id="dBest">0</b><em>m</em></div>
+    <div class="scenegrid" id="dScenes"></div>
+    <div class="row2">
+      <button class="btn ghost" id="dBack">BACK</button>
+      <button class="btn" id="dGo">RUN</button>
+    </div>
+  </div>
+
+  <div class="panel hide" id="dashEnd">
+    <div class="blevel" id="dEndTag">You hit something</div>
+    <div class="bsub">You ran</div>
+    <div class="bgoal" id="dDist">0<em>m</em></div>
+    <div class="bsub" id="dEndSub">Best 0m</div>
+    <div class="row2">
+      <button class="btn ghost" id="dEndBack">BACK</button>
+      <button class="btn" id="dAgain">RUN AGAIN</button>
+    </div>
   </div>
 
   <div class="panel hide" id="brief">
@@ -1134,6 +1167,11 @@ const saveProfile = () => store.set('profile',profile);
 const myName = () => profile.name.trim() || 'YOU';
 // anything typed by the player is text, never markup
 const esc = s => String(s).replace(/[&<>"']/g, c => '&#'+c.charCodeAt(0)+';');
+
+/* The native shell taps the phone when the game does something you feel. On the
+   web KlimboraNative is undefined and every one of these calls is a no-op, so
+   the game plays exactly the same in a browser as it does in the app. */
+const hap = s => { try{ window.KlimboraNative && window.KlimboraNative.haptic(s); }catch(e){} };
 
 /* coins are the one number the shop cares about, so every payout goes through here */
 function addCoins(n){
@@ -2566,7 +2604,7 @@ const HOW={
   wall:  {say:'TAP or SPACE to jump across', hint:'Tap or <kbd>space</kbd> to jump to the other wall &nbsp;&middot;&nbsp; spikes cost a shield'}
 };
 const SUPER_V=1180;
-const ROCKET_THRUST=2000, ROCKET_UP=660, FUEL_BURN=.42, FUEL_CELL=.36, ROCKET_G=.85;
+const ROCKET_THRUST=2000, ROCKET_UP=660, FUEL_BURN=.36, FUEL_CELL=.42, ROCKET_G=.85;
 const WALL_W=26, WALL_VX=620, WALL_VY=-800, WALL_SLIDE=75;
 
 /* ------------------------------------------------------ combo callouts
@@ -3069,7 +3107,7 @@ function grab(){
     bb.grabbed=true; bb.pulse=0;
     mAdd('grip',2); bumpHeat(.04);
     arc=0; swept=0; lastAng=Math.atan2(p.y-bb.y,p.x-bb.x);
-    tone(180,.07,'triangle',.18,260);
+    tone(180,.07,'triangle',.18,260); hap('grab');
   }
 }
 function release(){
@@ -3079,11 +3117,11 @@ function release(){
   if(arc>ARC&&!b.dead){ blast(b,true); grabCD=0; return; }
   grabCD=BAIL_CD;
   if(combo>0){ combo=0; colorRun=[]; elCombo.classList.remove('on'); }
-  tone(120,.09,'sine',.16,80);
+  tone(120,.09,'sine',.16,80); hap('bail');
 }
 // Platforms are one-way: you drop onto the top, then it is yours to walk.
 function land(pl){
-  ground=pl; groundT=0; slideT=0; pl.flash=1; msn('land',1); mAdd('climb',3); bumpHeat(.05);
+  ground=pl; groundT=0; slideT=0; pl.flash=1; msn('land',1); mAdd('climb',3); bumpHeat(.05); hap('land');
   p.y=pl.y-R-1; p.vy=0; p.vx*=.3;
   if(rope){ rope.b.grabbed=false; rope.b.pulse=0; rope=null; arc=0; swept=0; }
   grabCD=0;
@@ -3251,11 +3289,18 @@ function worldFell(){
 function buildRocket(){
   world.fuel=1; world.burn=false; world.meteors=[]; world.cells=[];
   p.vy=-380;
-  for(let y=p.y-260; y>world.exitY-700; y-=rand(135,205)){
-    world.meteors.push({x:rand(30,W-30), y, r:rand(15,25), vx:rand(-30,30), vy:rand(80,160),
+  /* The meteors used to arrive thick, big and fast all at once, and the ride
+     was the one part of the game people lost a shield to without ever seeing
+     what hit them. Every number below is turned down rather than one of them
+     turned off: a third fewer of them, a quarter smaller, a third slower, and
+     drifting sideways less - so there is room to steer between them and time
+     to see one coming. It is still the hazard it was, just readable. */
+  for(let y=p.y-260; y>world.exitY-700; y-=rand(215,305)){
+    world.meteors.push({x:rand(30,W-30), y, r:rand(11,19), vx:rand(-20,20), vy:rand(55,110),
                         rot:rand(0,6.28), vr:rand(-2,2), dead:false});
   }
-  for(let y=p.y-300; y>world.exitY+120; y-=rand(230,300)){
+  // and fuel cells a little closer together, so running dry bites less often
+  for(let y=p.y-300; y>world.exitY+120; y-=rand(195,265)){
     world.cells.push({x:rand(46,W-46), y, got:false, bob:rand(0,6.28)});
     if(Math.random()<.5) gemsW.push({x:rand(40,W-40),y:y-rand(90,150),got:false,bob:rand(0,6.28),prize:Math.random()<luckOdds()});
   }
@@ -3280,7 +3325,9 @@ function rocketHits(dt){
     if(m.dead) continue;
     m.x+=m.vx*dt; m.y+=m.vy*dt; m.rot+=m.vr*dt;
     if(m.x<m.r||m.x>W-m.r) m.vx=-m.vx;
-    if(invuln<=0 && Math.hypot(p.x-m.x,p.y-m.y)<m.r+R*.7){
+    // the drawn rock is lumpy and mostly inside its radius, so the old
+    // m.r + R*.7 was punishing near-misses that looked like clean gaps
+    if(invuln<=0 && Math.hypot(p.x-m.x,p.y-m.y)<m.r*.88+R*.6){
       m.dead=true; burst(m.x,m.y,'#9C8AA8',14,1.2);
       spiked(m); if(phase!=='run') return;
     }
@@ -3403,7 +3450,7 @@ function blast(b,launchMe){
   points+=Math.round(10*combo*heatMult()*demoMult()); msn('combo',combo);
   bumpHeat(.07+Math.min(.06,combo*.008)); mAdd('demo',2+combo); lucky(b);
   burst(b.x,b.y,col.body,9,1);
-  shake=Math.min(16,shake+4+combo*.7);
+  shake=Math.min(16,shake+4+combo*.7); hap(combo>=5?'blastBig':'blast');
   if(!REDUCED) freeze=Math.min(.09,.02+combo*.008);
   if(launchMe){
     const sp=Math.hypot(p.vx,p.vy)||1, total=Math.min(MAXV,sp+BOOST);
@@ -3533,7 +3580,7 @@ function bankBest(){
   if(Math.floor(meters)>(bestM[lvIdx]||0)){ bestM[lvIdx]=Math.floor(meters); store.set('bestM',bestM); }
 }
 function summit(){
-  phase='summit'; winT=0;
+  phase='summit'; winT=0; hap('summit');
   bankCoins(); bankBest();
   // finishing a deep level is what opens the next one, and the only record of it
   if(isDeep(lvIdx) && lvIdx>deepBest){ deepBest=lvIdx; store.set('deepBest',deepBest); }
@@ -3558,7 +3605,7 @@ function summit(){
 }
 function die(reason){
   if(phase==='dead'||phase==='summit') return;
-  phase='dead'; deathAt=performance.now();
+  phase='dead'; deathAt=performance.now(); hap('death');
   // the cube comes apart, the screen bruises red, and the run gets a headline
   burst(p.x,p.y,curSkin().body,22,1.5);
   burst(p.x,p.y,'#FF5A5F',16,1.9);
@@ -4072,6 +4119,10 @@ function scClassic(c,w,h,alt,now,a){
 const SCENES=[
   {id:'classic', name:'Klimbora Sky',     paint:scClassic},
   {id:'canyon',  name:'Grand Canyon',     paint:scCanyon},
+  {id:'valley',  name:'Monument Valley',  paint:scValley},
+  {id:'dunes',   name:'Sahara Dunes',     paint:scDunes},
+  {id:'redwood', name:'Redwood Forest',   paint:scRedwood},
+  {id:'reef',    name:'Coral Reef',       paint:scReef},
   {id:'beach',   name:'Tropical Beach',   paint:scBeach},
   {id:'peaks',   name:'Snowy Peaks',      paint:scPeaks},
   {id:'aurora',  name:'Northern Lights',  paint:scAurora},
@@ -4093,48 +4144,700 @@ function glowDot(c,x,y,r,col,a){
   g.addColorStop(0,col); g.addColorStop(1,'rgba(255,255,255,0)');
   c.globalAlpha=a; c.fillStyle=g; c.fillRect(x-r,y-r,r*2,r*2);
 }
-function scCanyon(c,w,h,alt,now,a){
-  const sink=sinkBy(h,alt,.28);
-  c.globalAlpha=a; c.fillStyle=vgrad(c,0,h,['#3D86D6','#8FC6EE','#F7D6A8','#F0A064']); c.fillRect(0,0,w,h);
-  glowDot(c,w*.74,h*.52+sink*.2,h*.22,'rgba(255,244,210,.95)',a*.8);
-  // four rows of mesas, hazy far to deep red near: flat tops, sheer cliffs,
-  // a talus skirt at the foot, a shaded side and the rock's stripes
-  const L=[{y:.62,hmin:.05,hmax:.11,col:'#D8B0B4',shade:'rgba(90,40,70,.10)',band:'rgba(255,240,240,.16)',par:.3},
-           {y:.72,hmin:.06,hmax:.13,col:'#D48C6C',shade:'rgba(90,30,30,.14)',band:'rgba(255,225,190,.17)',par:.55},
-           {y:.83,hmin:.07,hmax:.15,col:'#BA5A34',shade:'rgba(70,15,10,.18)',band:'rgba(255,200,150,.17)',par:.8},
-           {y:.95,hmin:.08,hmax:.17,col:'#8C381C',shade:'rgba(50,8,4,.22)', band:'rgba(255,170,110,.15)',par:1}];
-  L.forEach((l,k)=>{
-    const base=h*l.y+sink*l.par, shapes=[];
-    c.beginPath(); c.moveTo(-10,h+2); c.lineTo(-10,base);
-    let x=-w*(.02+.1*hsh(k*31));
-    for(let i=0;i<9&&x<w+10;i++){
-      const s=k*13+i, mw=w*(.16+.22*hsh(s)), mh=h*(l.hmin+(l.hmax-l.hmin)*hsh(s*7+1));
-      const x0=x, x1=x+mw, top=base-mh, sk=mw*.10;
-      c.lineTo(x0,base); c.lineTo(x0+sk,base-mh*.32); c.lineTo(x0+sk*1.5,top);
-      c.lineTo(x1-sk*1.5,top); c.lineTo(x1-sk,base-mh*.32); c.lineTo(x1,base);
-      shapes.push({x0,x1,top,sk,mh});
-      x=x1+w*(.03+.12*hsh(s*3+2));
-    }
-    c.lineTo(w+10,base); c.lineTo(w+10,h+2); c.closePath();
-    c.globalAlpha=a; c.fillStyle=l.col; c.fill();
-    c.save(); c.clip();
-    c.fillStyle=l.band;
-    for(let b=0;b<6;b++) c.fillRect(0,base-h*l.hmax+b*h*.026,w,h*.007);
-    // light from the left: every right-hand cliff falls into shadow
-    c.fillStyle=l.shade;
-    for(const m of shapes){
-      const mid=(m.x0+m.x1)/2;
-      c.beginPath(); c.moveTo(mid+(m.x1-m.x0)*.18,m.top); c.lineTo(m.x1-m.sk*1.5,m.top);
-      c.lineTo(m.x1-m.sk,base-m.mh*.32); c.lineTo(m.x1,base); c.lineTo(mid,base); c.closePath(); c.fill();
-    }
-    c.restore();
-  });
-  // the river, far down at the bottom of it all
-  const ry=h*.97+sink;
-  c.globalAlpha=a*.9; c.fillStyle='#57B8DC';
-  c.beginPath(); c.moveTo(w*.30,ry+h*.05); c.quadraticCurveTo(w*.46,ry-h*.03,w*.58,ry);
-  c.quadraticCurveTo(w*.70,ry+h*.03,w*.78,ry+h*.05); c.closePath(); c.fill();
+/* ------------------------------------------------- painting real places
+   The scenery is repainted every frame, and twice a frame while one place
+   fades into another. That is the whole budget, and it is why the old
+   scenery was as simple as it was.
+
+   So the expensive half is drawn once. A ridgeline's shape does not change
+   as you climb - only how far down the picture it sits - so each layer is
+   rendered into an offscreen strip and then blitted at whatever height the
+   climb has sunk it to. After that, detail is nearly free: one drawImage per
+   layer per frame, however much work went on inside it. That is what buys
+   the eroded skylines, the rock strata and the speckled talus below.
+
+   The strips are real memory, so the cache is capped and the least recently
+   used one goes first. In practice two places are ever hot at once: the one
+   you are in and the one fading out behind it.                            */
+/* Twelve. The most any one place uses is four, and the worst pair that can
+   be on screen during a crossfade comes to seven - so this holds both ends
+   of any transition with room over, and never grows into the tens of
+   megabytes that caching every place at once would cost on a phone. */
+const LAYER_CAP = 12;
+const layerCache = new Map();
+function layer(key, w, h, draw) {
+  const lw = Math.max(1, Math.ceil(w)), lh = Math.max(1, Math.ceil(h));
+  // the device pixel ratio is baked in, or a cached strip would be a blurry
+  // upscale of itself on every phone made in the last decade
+  const dpr = DPR || 1;
+  const k = key + '|' + lw + 'x' + lh + '@' + dpr;
+  const hit = layerCache.get(k);
+  if (hit) { layerCache.delete(k); layerCache.set(k, hit); return hit; }
+
+  const cv = document.createElement('canvas');
+  cv.width = Math.ceil(lw * dpr); cv.height = Math.ceil(lh * dpr);
+  const c = cv.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw(c, lw, lh);
+
+  layerCache.set(k, cv);
+  if (layerCache.size > LAYER_CAP) layerCache.delete(layerCache.keys().next().value);
+  return cv;
 }
+// a strip, at its own size, wherever the climb has put it
+const putLayer = (c, cv, x, y, w, h) => c.drawImage(cv, x, y, w, h);
+
+/* A skyline that looks eroded rather than drawn.
+   Start with the two ends and repeatedly halve the span, nudging each new
+   midpoint by less than the last round did. Weather works the same way -
+   big shoulders carrying smaller spurs carrying smaller notches - and that
+   self-similarity is what the eye reads as rock. A stack of sine waves never
+   gets there, however many you add. */
+function ridge(w, amp, seed, rough, steps) {
+  steps = steps || 7;
+  const n = (1 << steps) + 1, y = new Float32Array(n);
+  y[0] = hsh(seed * 7.1) * amp * .6;
+  y[n - 1] = hsh(seed * 3.3 + 41) * amp * .6;
+  let span = n - 1, a = amp;
+  while (span > 1) {
+    const half = span >> 1;
+    for (let i = half; i < n; i += span)
+      y[i] = (y[i - half] + y[i + half]) / 2 + (hsh(seed * 131 + i * 7.77) - .5) * a;
+    a *= rough; span = half;
+  }
+  return y;
+}
+// sample a ridge at 0..1 across its width
+const ridgeAt = (r, t) => {
+  const x = Math.min(r.length - 1, Math.max(0, t * (r.length - 1)));
+  const i = Math.floor(x), f = x - i;
+  return r[i] * (1 - f) + r[Math.min(r.length - 1, i + 1)] * f;
+};
+
+/* Side canyons. A real rim is not a continuous wall - it is cut every so
+   often by a drainage running back away from you, and those notches are most
+   of what stops a canyon reading as a quarry face. */
+function notch(r, seed, count, depth) {
+  const n = r.length;
+  for (let k = 0; k < count; k++) {
+    const at = Math.floor(hsh(seed * 17 + k * 5.1) * n);
+    const wide = Math.max(2, Math.floor(n * (.015 + .035 * hsh(seed * 23 + k))));
+    for (let i = -wide; i <= wide; i++) {
+      const j = at + i;
+      if (j < 1 || j >= n - 1) continue;
+      const f = 1 - Math.abs(i) / wide;          // a V, not a slot
+      r[j] += depth * f * f * (.75 + .5 * hsh(j * 3.7 + seed));
+    }
+  }
+  return r;
+}
+
+/* Mesa tops. A canyon rim is not a smooth skyline: it is a set of flat
+   benches at a handful of heights, because the rock that holds a rim up is
+   one hard layer and it breaks level. Quantising the ridge onto steps is
+   what turns a mountain silhouette into a plateau one, and it is most of
+   the difference between this reading as a canyon and as a hillside. */
+function plateau(r,steps,blend){
+  const n=r.length; let lo=Infinity, hi=-Infinity;
+  for(let i=0;i<n;i++){ if(r[i]<lo) lo=r[i]; if(r[i]>hi) hi=r[i]; }
+  const span=(hi-lo)||1;
+  for(let i=0;i<n;i++){
+    const t=(r[i]-lo)/span;
+    const flat=lo+Math.round(t*steps)/steps*span;
+    r[i]=r[i]*(1-blend)+flat*blend;
+  }
+  return r;
+}
+
+/* Atmospheric perspective: air is not clear, and thirty miles of it is what
+   tells you the far wall is far. Every layer gets a wash of the sky it sits
+   against, heavier the further back it is. It is the cheapest realism there
+   is and the most missed - and on a canyon it is doing more work than any
+   amount of detail on the rock. */
+function hazed(c, w, h, col, amount) {
+  if (amount <= 0) return;
+  c.save();
+  c.globalCompositeOperation = 'source-atop';   // only what the layer painted
+  c.globalAlpha = amount;
+  c.fillStyle = col;
+  c.fillRect(0, 0, w, h);
+  c.restore();
+}
+
+/* ------------------------------------------------------ the Grand Canyon
+   The canyon is not a row of flat-topped mesas, which is what most drawings
+   of it are and what this one used to be. It is a staircase. Hard rock
+   stands up in vertical cliffs; soft rock wastes back into slopes; and the
+   two alternate the whole way down. That alternation is what the eye
+   recognises, so it is what gets drawn - in the real sequence, in the real
+   order, in close to the real colours.
+
+   Top to bottom: Kaibab limestone caps the rim, the pale Coconino sandstone
+   makes the white band beneath it, the Redwall is the one big cliff halfway
+   down, and the Vishnu schist at the bottom is the dark basement the
+   Colorado actually runs on. `cliff` is how much each one stands up rather
+   than slumps back.
+
+   The other half of the picture is that you are looking across miles of it.
+   Only the nearest wall gets its strata drawn; the ones behind are
+   silhouettes washed most of the way to the colour of the sky, because that
+   is all you can actually see of them. Drawing full detail on every wall is
+   what made the first attempt read as one cliff face instead of a canyon. */
+const STRATA = [
+  { t: .055, col: '#C9BC9C', cliff: 1.0 },   // Kaibab limestone - the rim
+  { t: .045, col: '#B29775', cliff: 0.5 },   // Toroweap
+  { t: .060, col: '#E2D6B8', cliff: 1.0 },   // Coconino sandstone - the pale band
+  { t: .070, col: '#8E4530', cliff: 0.0 },   // Hermit shale - slope
+  { t: .130, col: '#A25433', cliff: 0.6 },   // Supai group - ledges
+  { t: .135, col: '#94402A', cliff: 1.0 },   // Redwall limestone - the big cliff
+  { t: .080, col: '#847E64', cliff: 0.7 },   // Muav
+  { t: .110, col: '#767C66', cliff: 0.0 },   // Bright Angel shale - green slope
+  { t: .055, col: '#6F5438', cliff: 1.0 },   // Tapeats sandstone
+  { t: .260, col: '#39333A', cliff: 0.8 }    // Vishnu schist - the inner gorge
+];
+
+/* One wall of the canyon. `detail` is how near it is: 0 draws a silhouette
+   with a hint of banding, 1 draws the whole sequence with its erosion. */
+function canyonWall(c, w, h, seed, light, detail) {
+  /* A big swing on the rim line, flattened onto benches, then cut by side
+     canyons deep enough to show the wall behind through the gap. That last
+     part is what makes it a canyon rather than a striped cliff: the layers
+     are painted far to near, so a notch in this one is a window onto the
+     hazier one behind it. */
+  const top = ridge(w, h * .44, seed, .46, 6);
+  plateau(top, 3, .72);
+  notch(top, seed, detail > .5 ? 3 : 2, h * .55);
+
+  if (detail < .5) {
+    // far enough away to be one shape. Two or three broad tones is all the
+    // air lets through, and pretending otherwise is what kills the distance.
+    c.beginPath(); c.moveTo(-2, h + 2);
+    for (let x = -2; x <= w + 2; x += 3) c.lineTo(x, ridgeAt(top, x / w));
+    c.lineTo(w + 2, h + 2); c.closePath();
+    c.fillStyle = '#8E5A46'; c.fill();
+    c.save(); c.clip();
+    // one pale band and one shadow is everything the air lets through
+    c.fillStyle = 'rgba(226,214,184,.22)';
+    c.fillRect(0, h * .16, w, h * .05);
+    c.fillStyle = 'rgba(40,16,12,.20)';
+    c.fillRect(0, h * .52, w, h);
+    c.restore();
+    return;
+  }
+
+  let depth = 0;
+  for (const s of STRATA) {
+    const d0 = depth; depth += s.t;
+    const slump = (1 - s.cliff) * h * .05;
+    c.beginPath();
+    c.moveTo(-2, h + 2);
+    for (let x = -2; x <= w + 2; x += 2) {
+      const base = ridgeAt(top, x / w) + h * d0;
+      // slope-formers wander; cliff-formers hold a line
+      const wobble = slump * (smooth(x * .04, seed + d0 * 100) - .5) * 2;
+      c.lineTo(x, base + slump + wobble);
+    }
+    c.lineTo(w + 2, h + 2); c.closePath();
+    c.fillStyle = s.col; c.fill();
+
+    if (s.cliff > .5) {
+      c.save(); c.clip();
+      const g = c.createLinearGradient(0, h * d0, 0, h * (d0 + s.t));
+      g.addColorStop(0, 'rgba(255,238,204,' + (.16 * light).toFixed(3) + ')');
+      g.addColorStop(.4, 'rgba(255,238,204,0)');
+      g.addColorStop(1, 'rgba(38,14,10,.20)');
+      c.fillStyle = g; c.fillRect(0, 0, w, h);
+      c.restore();
+    }
+  }
+
+  /* Erosion runs in vertical stripes, but faintly - the first attempt at
+     this looked like paint running down the wall. Short, few and pale. */
+  c.save(); c.globalAlpha = .07;
+  for (let i = 0; i < 26; i++) {
+    const t = hsh(i * 2.7 + seed);
+    const y0 = ridgeAt(top, t) + h * (.08 + .34 * hsh(i * 1.3 + seed));
+    // dark only. A pale streak on dark rock reads as paint running down it,
+    // which is what the light ones were doing.
+    c.fillStyle = '#2A140C';
+    c.fillRect(t * w, y0, 1 + hsh(i * 5.1) * 2, h * (.05 + .14 * hsh(i * 9.1)));
+  }
+  c.restore();
+
+  // every cliff stands in the rubble it has shed
+  c.save(); c.globalAlpha = .40;
+  for (let i = 0; i < 90; i++) {
+    const t = hsh(i * 3.1 + seed * 2);
+    const y = ridgeAt(top, t) + h * (.45 + .48 * hsh(i * 7.7 + seed));
+    c.fillStyle = i % 2 ? 'rgba(56,28,18,.5)' : 'rgba(172,116,80,.4)';
+    c.beginPath(); c.arc(t * w, y, .7 + hsh(i * 11.3) * 1.8, 0, 6.283); c.fill();
+  }
+  c.restore();
+}
+
+function scCanyon(c, w, h, alt, now, a) {
+  const sink = sinkBy(h, alt, .26);
+  c.globalAlpha = a;
+
+  // late afternoon, which is when the canyon does what it is famous for.
+  // Most of the frame is sky: standing on the rim, that is what it is.
+  c.fillStyle = vgrad(c, 0, h, ['#2B6BB4', '#6BA5D6', '#A9C0CE', '#D8B394', '#C98A62']);
+  c.fillRect(0, 0, w, h);
+  glowDot(c, w * .70, h * .26, h * .24, 'rgba(255,240,204,.8)', a * .7);
+
+  /* Walls stepping back into the haze. The far ones barely move and are
+     washed almost to the colour of the sky; the near one is full strength,
+     sinks fastest, and is the only one whose rock you can actually read. */
+  const WALLS = [
+    { y: .44, hh: .22, seed: 3,  par: .14, haze: .80, light: .3, detail: 0 },
+    { y: .54, hh: .28, seed: 17, par: .32, haze: .56, light: .5, detail: 0 },
+    { y: .64, hh: .34, seed: 31, par: .60, haze: .28, light: .8, detail: 1 },
+    { y: .78, hh: .40, seed: 53, par: 1.0, haze: .05, light: 1.0, detail: 1 }
+  ];
+  for (const wl of WALLS) {
+    const lh = h * wl.hh;
+    const strip = layer('canyon' + wl.seed, w, lh, (lc, lw, llh) => {
+      canyonWall(lc, lw, llh, wl.seed, wl.light, wl.detail);
+      hazed(lc, lw, llh, '#C6CBD2', wl.haze);
+    });
+    c.globalAlpha = a;
+    putLayer(c, strip, 0, h * wl.y + sink * wl.par, w, lh);
+  }
+
+  /* The Colorado. It is not blue - it is a green-brown thread a mile down,
+     and only ever half visible between the walls of the inner gorge. */
+  const ry = h * .97 + sink;
+  c.globalAlpha = a * .8; c.fillStyle = '#46644C';
+  c.beginPath();
+  c.moveTo(w * .16, ry + h * .04);
+  c.bezierCurveTo(w * .36, ry - h * .012, w * .52, ry + h * .016, w * .74, ry - h * .004);
+  c.lineTo(w * .82, ry + h * .016);
+  c.bezierCurveTo(w * .56, ry + h * .034, w * .40, ry + h * .016, w * .20, ry + h * .06);
+  c.closePath(); c.fill();
+
+  /* Ravens. One moving thing at the right scale tells you how big the rest
+     of it is, which no amount of rock can do on its own. */
+  c.globalAlpha = a * .45; c.strokeStyle = '#241A18'; c.lineWidth = 1.3;
+  for (let i = 0; i < 3; i++) {
+    const bx = (w * (.2 + i * .3) + now * (.008 + i * .003)) % (w + 60) - 30;
+    const by = h * (.34 + i * .06) + Math.sin(now * .0013 + i * 2) * h * .015;
+    const s = 4 + i, flap = Math.sin(now * .006 + i * 1.7) * .4;
+    c.beginPath();
+    c.moveTo(bx - s, by); c.quadraticCurveTo(bx - s * .4, by - s * (.5 + flap), bx, by);
+    c.quadraticCurveTo(bx + s * .4, by - s * (.5 + flap), bx + s, by);
+    c.stroke();
+  }
+  c.lineWidth = 1;
+}
+
+/* ---------------------------------------------------- Monument Valley
+   The opposite composition to the canyon: there you look down into it, here
+   the ground runs flat to the horizon and a handful of towers stand off it.
+   The proportion is the whole thing - a butte is far taller than it is wide,
+   with near-vertical walls, and getting that wrong turns it into a stump. */
+function scValley(c, w, h, alt, now, a) {
+  const sink = sinkBy(h, alt, .22);
+  c.globalAlpha = a;
+  c.fillStyle = vgrad(c, 0, h, ['#2A5C9E', '#6B9ED0', '#C9AE92', '#DE9A68']);
+  c.fillRect(0, 0, w, h);
+  glowDot(c, w * .2, h * .22, h * .18, 'rgba(255,234,192,.75)', a * .65);
+
+  const FLOOR = .86;
+
+  // a far mesa line, almost entirely haze
+  const far = layer('valley-far', w, h * .10, (lc, lw, lh) => {
+    const r = ridge(lw, lh * .42, 71, .5, 6);
+    lc.beginPath(); lc.moveTo(0, lh);
+    for (let x = 0; x <= lw; x += 3) lc.lineTo(x, ridgeAt(r, x / lw) + lh * .40);
+    lc.lineTo(lw, lh); lc.closePath();
+    lc.fillStyle = '#96685A'; lc.fill();
+    hazed(lc, lw, lh, '#C6D0DA', .66);
+  });
+  putLayer(c, far, 0, h * (FLOOR - .10) + sink * .3, w, h * .10);
+
+  /* The towers. Sheer sandstone on a low skirt of its own debris, with a
+     hard cap that is the only reason any of it is still standing. */
+  const BUTTES = [
+    { x: .14, wd: .070, ht: .78, seed: 5,  haze: .22 },
+    { x: .38, wd: .052, ht: .62, seed: 11, haze: .14 },
+    { x: .49, wd: .030, ht: .42, seed: 19, haze: .14 },
+    { x: .74, wd: .090, ht: .92, seed: 29, haze: .05 }
+  ];
+  const SH = .46;                         // strip height, as a fraction of h
+  const strip = layer('valley-buttes', w, h * SH, (lc, lw, lh) => {
+    const base = lh * .88;
+    for (const b of BUTTES) {
+      const bw = lw * b.wd, bh = lh * .80 * b.ht, x0 = lw * b.x;
+      lc.save();
+
+      // the debris skirt: low and wide, not a cone the tower sits on top of
+      lc.fillStyle = '#874A31'; lc.globalAlpha = .85;
+      lc.beginPath();
+      lc.moveTo(x0 - bw * 2.1, base + lh * .035);
+      lc.lineTo(x0 - bw * .62, base - bh * .17);
+      lc.lineTo(x0 + bw * .62, base - bh * .17);
+      lc.lineTo(x0 + bw * 2.1, base + lh * .035);
+      lc.closePath(); lc.fill();
+      lc.globalAlpha = 1;
+
+      // the tower. The edges wander, but only just - these are cliffs.
+      lc.fillStyle = '#A85030';
+      lc.beginPath();
+      lc.moveTo(x0 - bw, base);
+      for (let y = base; y > base - bh; y -= 4)
+        lc.lineTo(x0 - bw + (smooth(y * .05, b.seed) - .5) * bw * .10, y);
+      lc.lineTo(x0 + bw, base - bh);
+      for (let y = base - bh; y < base; y += 4)
+        lc.lineTo(x0 + bw + (smooth(y * .05, b.seed + 9) - .5) * bw * .10, y);
+      lc.closePath(); lc.fill();
+
+      lc.save(); lc.clip();
+      // the hard cap, and the darker band just under it
+      lc.fillStyle = '#C4854F'; lc.fillRect(x0 - bw * 1.2, base - bh, bw * 2.4, lh * .016);
+      lc.fillStyle = 'rgba(60,20,10,.22)';
+      lc.fillRect(x0 - bw * 1.2, base - bh + lh * .016, bw * 2.4, lh * .010);
+      // light from the left: the right third of every tower is in shadow
+      // light from the left, so the right of every tower falls away into
+      // shadow - graded, because a hard edge reads as a folded card
+      const sg = lc.createLinearGradient(x0 - bw * .1, 0, x0 + bw, 0);
+      sg.addColorStop(0, 'rgba(44,12,8,0)');
+      sg.addColorStop(1, 'rgba(44,12,8,.42)');
+      lc.fillStyle = sg;
+      lc.fillRect(x0 - bw * .1, base - bh, bw * 1.2, bh);
+      // vertical fluting - desert varnish runs straight down sandstone
+      lc.globalAlpha = .14;
+      for (let i = 0; i < 14; i++) {
+        lc.fillStyle = i % 2 ? '#37100A' : '#DFA576';
+        lc.fillRect(x0 - bw + hsh(i * 3.3 + b.seed) * bw * 2,
+                    base - bh * (.1 + .8 * hsh(i * 7.1)), 1.2, bh * .55);
+      }
+      lc.restore();
+      lc.restore();
+
+      if (b.haze) hazed(lc, lw, lh, '#C9B49C', 0);   // per-butte haze below
+    }
+    hazed(lc, lw, lh, '#C6B098', .12);
+  });
+  c.globalAlpha = a;
+  // the strip's own base line is at .88 of its height, so line that up with
+  // the floor exactly - a butte hovering a few pixels clear of its shadow is
+  // the kind of thing you cannot unsee
+  putLayer(c, strip, 0, h * FLOOR - h * SH * .88 + sink, w, h * SH);
+
+  // the desert floor, and the long shadows that say what time of day it is
+  c.fillStyle = '#BC7248'; c.fillRect(0, h * FLOOR + sink, w, h);
+  c.globalAlpha = a * .20; c.fillStyle = '#46190C';
+  for (const b of BUTTES)
+    c.fillRect(w * b.x - w * b.wd, h * FLOOR + sink, w * b.wd * 5, h * .010);
+  c.globalAlpha = a * .10; c.fillStyle = '#3A1408';
+  for (let i = 0; i < 40; i++)                     // scrub on the flat
+    c.fillRect(hsh(i * 4.1) * w, h * (FLOOR + .02 + .10 * hsh(i * 2.3)) + sink, 3, 1.6);
+  c.globalAlpha = a;
+}
+
+/* ----------------------------------------------------------- the Sahara
+   A dune is not a hill. It has a long gentle windward back and a short steep
+   slip face on the lee side, and the sharp crest where the two meet is the
+   whole of its character. Draw it as a soft bump and you get nothing - which
+   is exactly what the first attempt at this got. */
+function scDunes(c, w, h, alt, now, a) {
+  const sink = sinkBy(h, alt, .2);
+  c.globalAlpha = a;
+  c.fillStyle = vgrad(c, 0, h, ['#3B79C2', '#8FBEE4', '#E3CFA2', '#E8B273']);
+  c.fillRect(0, 0, w, h);
+  glowDot(c, w * .52, h * .30, h * .26, 'rgba(255,246,214,.85)', a * .8);
+
+  const ROWS = [
+    { y: .52, hh: .20, seed: 2,  lit: '#D6BC8E', dark: '#A8835A', par: .25, haze: .50 },
+    { y: .63, hh: .26, seed: 13, lit: '#E5CD9A', dark: '#AD8452', par: .55, haze: .24 },
+    { y: .77, hh: .34, seed: 27, lit: '#F2DCA8', dark: '#B2864F', par: 1.0, haze: .03 }
+  ];
+
+  for (const r of ROWS) {
+    const lh = h * r.hh;
+    const strip = layer('dune' + r.seed, w, lh, (lc, lw, llh) => {
+      // a crest line with big lazy curves - dunes are smooth, unlike rock,
+      // so this is a rougher fractal smoothed down rather than a jagged one
+      const crest = ridge(lw, llh * .52, r.seed, .34, 6);
+      const yAt = t => ridgeAt(crest, t) + llh * .30;
+
+      lc.beginPath(); lc.moveTo(0, llh);
+      for (let x = 0; x <= lw; x += 2) lc.lineTo(x, yAt(x / lw));
+      lc.lineTo(lw, llh); lc.closePath();
+      lc.fillStyle = r.lit; lc.fill();
+
+      lc.save(); lc.clip();
+
+      /* The slip faces. Wherever the crest is falling away to the right, the
+         sand behind it is in shadow - so shade proportionally to the slope,
+         as one solid shape per face rather than a stack of alpha slivers. */
+      let run = null;
+      const face = (x0, x1) => {
+        // A three-pixel run is not a slip face, it is a sampling accident -
+        // and filling one to the foot of the strip stands a fencepost up in
+        // the middle of the desert, which is exactly what it did.
+        if (x1 - x0 < lw * .04) return;
+        lc.save();
+        lc.beginPath();
+        for (let k = x0; k <= x1; k += 3) lc.lineTo(k, yAt(k / lw));
+        for (let k = x1; k >= x0; k -= 3) lc.lineTo(k, yAt(k / lw) + llh * .34);
+        lc.closePath(); lc.clip();
+        /* Fade it out downwards as well as sideways. Where the crest runs
+           flat the face has no slope to speak of, and a shape with two
+           straight sides and a flat top is a grey rectangle sitting in the
+           middle of the desert - which is what this was. */
+        const top = yAt((x0 + x1) / 2 / lw);
+        const g = lc.createLinearGradient(0, top, 0, top + llh * .34);
+        g.addColorStop(0, r.dark);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        lc.globalAlpha = .5; lc.fillStyle = g;
+        lc.fillRect(x0, top - llh * .05, x1 - x0, llh * .42);
+        lc.globalAlpha = 1; lc.restore();
+      };
+      for (let x = 0; x <= lw; x += 3) {
+        const t = x / lw, slope = yAt(Math.min(1, t + .02)) - yAt(t);
+        if (slope > llh * .022) { if (run === null) run = x; }
+        else if (run !== null) { face(run, x); run = null; }
+      }
+      if (run !== null) face(run, lw);
+
+      // the crest itself, catching the sun along its whole length
+      lc.strokeStyle = 'rgba(255,248,222,.55)'; lc.lineWidth = 1.6;
+      lc.beginPath();
+      for (let x = 0; x <= lw; x += 2) lc.lineTo(x, yAt(x / lw));
+      lc.stroke(); lc.lineWidth = 1;
+
+      // and the sand darkening into the trough at the foot
+      const gg = lc.createLinearGradient(0, llh * .5, 0, llh);
+      gg.addColorStop(0, 'rgba(140,100,58,0)');
+      gg.addColorStop(1, 'rgba(140,100,58,.35)');
+      lc.fillStyle = gg; lc.fillRect(0, 0, lw, llh);
+
+      // wind ripples, following the contour rather than lying flat
+      lc.globalAlpha = .09; lc.strokeStyle = '#8A6638';
+      for (let k = 1; k < 8; k++) {
+        lc.beginPath();
+        for (let x = 0; x <= lw; x += 5)
+          lc.lineTo(x, yAt(x / lw) + llh * k * .09 + Math.sin(x * .08 + k) * 1.4);
+        lc.stroke();
+      }
+      lc.globalAlpha = 1;
+      lc.restore();
+      hazed(lc, lw, llh, '#E6DECA', r.haze);
+    });
+    c.globalAlpha = a;
+    putLayer(c, strip, 0, h * r.y + sink * r.par, w, lh);
+  }
+
+  // heat shimmer, low down where the air is thickest
+  c.globalAlpha = a * .07; c.fillStyle = '#FFF4D8';
+  for (let i = 0; i < 6; i++)
+    c.fillRect(0, h * (.56 + i * .04) + Math.sin(now * .0009 + i) * 2 + sink * .4, w, 1.4);
+  c.globalAlpha = a;
+}
+
+/* ------------------------------------------------------ redwood forest
+   The one place on the list that is already the shape of this game: the
+   subject is vertical, and climbing reads as going up a trunk. The light is
+   the point - a shaft coming down through two hundred feet of canopy - but
+   it has to stay soft, or the trunks and the rays become the same stripes. */
+function scRedwood(c, w, h, alt, now, a) {
+  const sink = sinkBy(h, alt, .16);
+  c.globalAlpha = a;
+  // Mist, not foliage. The old background was green enough that the gaps
+  // between the trunks read as columns of their own, and the whole thing
+  // came out as stripes.
+  c.fillStyle = vgrad(c, 0, h, ['#CBDCBA', '#93B291', '#4E6E55', '#22382A']);
+  c.fillRect(0, 0, w, h);
+
+  /* Fewer, thinner, and pushed out to the sides. A grove is mostly the air
+     between the trunks - and the middle of this picture is where the game is
+     played, so anything standing in it is competing with the climb. `bias`
+     spreads each row toward the edges rather than evenly across. */
+  const ROWS = [
+    { seed: 4,  n: 5, wd: .013, col: '#5A7360', par: .18, haze: .55, bias: .15 },
+    { seed: 16, n: 4, wd: .026, col: '#4A362A', par: .45, haze: .26, bias: .45 },
+    { seed: 34, n: 2, wd: .050, col: '#332016', par: 1.0, haze: .00, bias: .80 }
+  ];
+  /* Every other place here builds strips a fraction of the screen tall;
+     trunks run the whole height, so these are full-screen blits and three of
+     them cost more than the rest of the scenery put together. The far two
+     rows move 9px apart over an entire climb, which nobody has ever seen, so
+     they share one strip. Two blits instead of three, and the parallax that
+     is actually visible - the near trunks against the rest - is kept. */
+  const GROUPS = [
+    { key: 'back', par: .30, rows: [ROWS[0], ROWS[1]] },
+    { key: 'near', par: 1.0, rows: [ROWS[2]] }
+  ];
+  for (const grp of GROUPS) {
+    const strip = layer('redwood-' + grp.key, w, h, (lc, lw, lh) => {
+     for (const r of grp.rows) {
+      for (let i = 0; i < r.n; i++) {
+        // -1..1 across the row, pushed outward, then back into pixels
+        const even = (i + .5) / r.n * 2 - 1;
+        const out = Math.sign(even) * Math.pow(Math.abs(even), 1 - r.bias);
+        const x = lw * (.5 + out * .52) + (hsh(i * 5.7 + r.seed) - .5) * lw * .08;
+        const tw = lw * r.wd * (.78 + .44 * hsh(i * 3.1 + r.seed));
+        lc.fillStyle = r.col;
+        lc.beginPath();
+        for (let y = 0; y <= lh; y += 5) {
+          const taper = 1 - (1 - y / lh) * .24;
+          lc.lineTo(x - tw * taper + (smooth(y * .04, r.seed + i) - .5) * tw * .22, y);
+        }
+        for (let y = lh; y >= 0; y -= 5) {
+          const taper = 1 - (1 - y / lh) * .24;
+          lc.lineTo(x + tw * taper + (smooth(y * .04, r.seed + i + 40) - .5) * tw * .22, y);
+        }
+        lc.closePath(); lc.fill();
+
+        lc.save(); lc.clip();
+        // bark runs in long vertical fissures
+        lc.globalAlpha = .20;
+        for (let k = 0; k < 8; k++) {
+          lc.fillStyle = k % 2 ? '#130C08' : '#7C5A40';
+          lc.fillRect(x - tw + hsh(k * 7.3 + r.seed) * tw * 2, 0, 1 + hsh(k * 2.1) * 1.8, lh);
+        }
+        // the lit edge, and the shaded one opposite
+        lc.globalAlpha = .16; lc.fillStyle = '#D8B88A';
+        lc.fillRect(x - tw, 0, tw * .28, lh);
+        lc.globalAlpha = .22; lc.fillStyle = '#0C0806';
+        lc.fillRect(x + tw * .45, 0, tw * .55, lh);
+        lc.restore();
+      }
+      // haze per row, before the next row is laid over it
+      if (r.haze) {
+        lc.save(); lc.globalCompositeOperation = 'source-atop';
+        lc.globalAlpha = r.haze; lc.fillStyle = '#B6CDAA';
+        lc.fillRect(0, 0, lw, lh); lc.restore();
+      }
+     }
+    });
+    c.globalAlpha = a;
+    putLayer(c, strip, 0, sink * grp.par * .25, w, h);
+  }
+
+  /* The shafts of light go on top of the trunks, not behind them - that is
+     what makes them read as air rather than as gaps. Soft, wide, and fading
+     out before they reach the floor. */
+  c.save(); c.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 5; i++) {
+    const x = w * (.14 + i * .19) + Math.sin(now * .0004 + i) * w * .015;
+    const g = c.createLinearGradient(0, 0, 0, h * .92);
+    const k = .045 + .025 * (.5 + .5 * Math.sin(now * .0007 + i * 1.4));
+    g.addColorStop(0, 'rgba(236,255,198,' + (k * a).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(236,255,198,0)');
+    c.fillStyle = g; c.globalAlpha = 1;
+    c.beginPath();
+    c.moveTo(x - w * .035, 0); c.lineTo(x + w * .035, 0);
+    c.lineTo(x + w * .15, h * .92); c.lineTo(x - w * .11, h * .92);
+    c.closePath(); c.fill();
+  }
+  c.restore();
+
+  // the forest floor, and dust turning over in the light
+  c.globalAlpha = a;
+  c.fillStyle = '#152C1C'; c.fillRect(0, h * .94 + sink, w, h);
+  c.fillStyle = '#FFF8D0';
+  for (let i = 0; i < 26; i++) {
+    const x = (hsh(i * 1.7) * w + Math.sin(now * .0006 + i) * 18 + w) % w;
+    const y = (hsh(i * 4.3) * h + now * .012 * (1 + (i % 3) * .4)) % h;
+    c.globalAlpha = a * (.08 + .20 * (.5 + .5 * Math.sin(now * .002 + i)));
+    c.beginPath(); c.arc(x, y, .8 + (i % 3) * .5, 0, 6.283); c.fill();
+  }
+  c.globalAlpha = a;
+}
+
+/* -------------------------------------------------------- a coral reef
+   Underwater, which changes every rule: the light comes from above in moving
+   bands, distance goes blue rather than pale, and there is no horizon at all
+   to hang the picture on. */
+function scReef(c, w, h, alt, now, a) {
+  const sink = sinkBy(h, alt, .2);
+  c.globalAlpha = a;
+  c.fillStyle = vgrad(c, 0, h, ['#8FE8F0', '#2FA8D8', '#12628F', '#06304E']);
+  c.fillRect(0, 0, w, h);
+
+  /* Caustics: sunlight bent by the surface into moving bands. They have to
+     fade out rather than stop, or the bottom of every shaft is a ruled line
+     straight across the picture. */
+  c.save(); c.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 9; i++) {
+    const x = i * w / 9 + Math.sin(now * .0007 + i * .9) * w * .06;
+    const k = .07 + .05 * (.5 + .5 * Math.sin(now * .0015 + i));
+    const g = c.createLinearGradient(0, 0, 0, h * .78);
+    g.addColorStop(0, 'rgba(223,251,255,' + (k * a).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(223,251,255,0)');
+    c.fillStyle = g; c.globalAlpha = 1;
+    c.beginPath();
+    c.moveTo(x - w * .02, 0); c.lineTo(x + w * .02, 0);
+    c.lineTo(x + w * .10, h * .78); c.lineTo(x - w * .07, h * .78);
+    c.closePath(); c.fill();
+  }
+  c.restore();
+
+  const strip = layer('reef', w, h * .42, (lc, lw, lh) => {
+    const r = ridge(lw, lh * .26, 61, .5, 6);
+    const yAt = t => ridgeAt(r, t) + lh * .34;
+    lc.beginPath(); lc.moveTo(0, lh);
+    for (let x = 0; x <= lw; x += 3) lc.lineTo(x, yAt(x / lw));
+    lc.lineTo(lw, lh); lc.closePath();
+    lc.fillStyle = '#1E5A6E'; lc.fill();
+
+    const COL = ['#FF8A6B', '#FFC46B', '#E86BA8', '#8AE0C0', '#C89AE8'];
+    for (let i = 0; i < 44; i++) {
+      const t = hsh(i * 2.3 + 7);
+      const x = t * lw, y = yAt(t) + lh * (.02 + .10 * hsh(i * 5.1));
+      const s = lh * (.05 + .09 * hsh(i * 9.7));
+      lc.fillStyle = COL[i % COL.length];
+      lc.globalAlpha = .85;
+      if (i % 3 === 0) {
+        lc.strokeStyle = COL[i % COL.length]; lc.lineWidth = s * .16; lc.lineCap = 'round';
+        for (let b = 0; b < 5; b++) {
+          const ang = -1.5708 + (b - 2) * .38;
+          lc.beginPath(); lc.moveTo(x, y);
+          lc.lineTo(x + Math.cos(ang) * s * .9, y + Math.sin(ang) * s * .9);
+          lc.stroke();
+        }
+        lc.lineCap = 'butt';
+      } else if (i % 3 === 1) {
+        lc.beginPath(); lc.arc(x, y, s * .6, Math.PI, 0); lc.fill();
+        lc.globalAlpha = .3; lc.strokeStyle = '#2A4A58'; lc.lineWidth = 1;
+        for (let g = -2; g <= 2; g++) {
+          lc.beginPath(); lc.arc(x + g * s * .2, y, s * .2, Math.PI, 0); lc.stroke();
+        }
+      } else {
+        lc.beginPath();
+        lc.ellipse(x, y - s * .4, s * .5, s * .7, hsh(i) * .5 - .25, 0, 6.283);
+        lc.fill();
+      }
+      lc.globalAlpha = 1;
+    }
+    hazed(lc, lw, lh, '#1A6E96', .28);
+  });
+  c.globalAlpha = a;
+  putLayer(c, strip, 0, h * .62 + sink, w, h * .42);
+
+  for (let i = 0; i < 14; i++) {
+    const sp = .02 + (i % 4) * .012, dir = i % 2 ? 1 : -1;
+    const x = ((now * sp * dir + i * 137) % (w + 80) + w + 80) % (w + 80) - 40;
+    const y = h * (.22 + .48 * hsh(i * 3.7)) + Math.sin(now * .002 + i) * h * .015;
+    const s = 4 + (i % 3) * 3;
+    c.globalAlpha = a * .8;
+    c.fillStyle = ['#FFD24A', '#4AD2FF', '#FF7A9A', '#9AFFC4'][i % 4];
+    c.beginPath(); c.ellipse(x, y, s, s * .55, 0, 0, 6.283); c.fill();
+    c.beginPath();
+    c.moveTo(x - dir * s, y); c.lineTo(x - dir * s * 1.8, y - s * .5);
+    c.lineTo(x - dir * s * 1.8, y + s * .5); c.closePath(); c.fill();
+  }
+  c.globalAlpha = a * .3; c.fillStyle = '#DFFBFF';
+  for (let i = 0; i < 20; i++) {
+    const x = hsh(i * 6.1) * w + Math.sin(now * .001 + i) * 6;
+    const y = h - ((now * .05 * (1 + (i % 3) * .4) + i * 97) % (h + 40));
+    c.beginPath(); c.arc(x, y, 1 + (i % 3) * .9, 0, 6.283); c.fill();
+  }
+  c.globalAlpha = a;
+}
+
 function palm(c,x,y,s,lean,a){
   c.globalAlpha=a; c.strokeStyle='#5A3B22'; c.lineWidth=s*.07; c.lineCap='round';
   const tx=x+lean*s*.35, ty=y-s;
@@ -4305,10 +5008,83 @@ function scSpace(c,w,h,alt,now,a){
   c.fillStyle='rgba(80,70,110,.6)'; c.beginPath(); c.arc(w*.18-pr*.08,h*.72-pr*.06,pr*.08,0,6.283); c.fill();
 }
 // one scene into a context: base painting, then a light wash so the game stays readable on it
+/* ---------------------------------------------------------- photographs
+   The places are photographs of the actual places. Every one is public
+   domain or CC0 - mostly the US Park Service, NOAA and NASA, whose work is
+   public domain by statute - and the licence of each is recorded in
+   assets/scenes/CREDITS.md, rechecked against Wikimedia Commons every time
+   tools/fetch-photos.mjs runs.
+
+   The painted version of each place is still here and still used. It is what
+   you see for the frame or two before the photograph has decoded, what you
+   see if a file is missing or corrupt, and what you see for anywhere that
+   has no photograph yet. So the game never waits on an image and never comes
+   up blank because of one. */
+const PHOTO_SCENES = ['canyon','valley','dunes','redwood','reef','beach','peaks','aurora','city','space'];
+const photoImgs = {};
+let thumbsStale = false;
+
+function photo(id){
+  if(PHOTO_SCENES.indexOf(id)<0) return null;
+  let im = photoImgs[id];
+  if(im===undefined){
+    im = photoImgs[id] = new Image();
+    im.decoding='async';
+    // a thumbnail drawn before its photograph arrived is the painted version,
+    // and it would otherwise be cached that way for the rest of the session
+    im.onload = () => { for(const k in thumbs) delete thumbs[k]; thumbsStale=true; };
+    im.onerror = () => { photoImgs[id]=null; };   // fall back to paint, for good
+    im.src = 'assets/scenes/'+id+'.webp';
+  }
+  return (im && im.complete && im.naturalWidth) ? im : null;
+}
+// start them all decoding now; they are local files and small
+const preloadPhotos = () => { for(const id of PHOTO_SCENES) photo(id); };
+
+/* Fill the screen with the photograph, cropping rather than squashing, and
+   let it sink as you climb the way the painted scenery does. Returns false if
+   the picture is not ready, which is the caller's cue to paint instead. */
+function paintPhoto(c,id,w,h,alt,a){
+  const im = photo(id);
+  if(!im) return false;
+  const iw=im.naturalWidth, ih=im.naturalHeight;
+  // a little over "cover", so there is slack to pan through as you rise
+  const k=Math.max(w/iw,h/ih)*1.12, dw=iw*k, dh=ih*k;
+  const room=Math.max(0,dh-h);
+  const sink=sinkBy(h,alt,.55);
+  c.globalAlpha=a;
+  c.drawImage(im,(w-dw)/2, -room*.8+Math.min(room*.8,sink), dw, dh);
+
+  /* Gameplay sits on top of this, and a photograph is far busier than a
+     painting. A flat wash plus a heavier band top and bottom puts the blocks
+     and the HUD back in front of it without turning the picture to mud. */
+  c.fillStyle='rgba(10,16,52,.10)'; c.fillRect(0,0,w,h);
+  /* The HUD is the reason this band is as strong as it is. Over the painted
+     scenery its text sat on a plain gradient and read easily; over a
+     photograph it was competing with sunlit rock, and the level name and the
+     points were close to invisible. The band has to reach as far down as the
+     HUD does - about a third of the way - and then get out of the way, so the
+     middle of the picture, which is the part you actually look at, stays
+     clear. */
+  const g=c.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,   'rgba(6,10,36,.62)');
+  g.addColorStop(.18, 'rgba(6,10,36,.34)');   // level name, points, momentum
+  g.addColorStop(.34, 'rgba(6,10,36,.04)');
+  g.addColorStop(.74, 'rgba(6,10,36,.05)');
+  g.addColorStop(1,   'rgba(6,10,36,.38)');   // the goal bar at the foot
+  c.fillStyle=g; c.fillRect(0,0,w,h);
+  return true;
+}
+
 function paintScene(c,id,w,h,alt,now,a){
-  const s=sceneById(id);
-  c.save(); s.paint(c,w,h,alt,now,a);
-  if(id!=='classic'){ c.globalAlpha=a; c.fillStyle='rgba(8,14,52,.16)'; c.fillRect(0,0,w,h); }
+  c.save();
+  if(paintPhoto(c,id,w,h,alt,a)){
+    // paintPhoto lays down its own wash, tuned to a photograph. A second one
+    // on top of it only makes mud.
+  } else {
+    sceneById(id).paint(c,w,h,alt,now,a);
+    if(id!=='classic'){ c.globalAlpha=a; c.fillStyle='rgba(8,14,52,.16)'; c.fillRect(0,0,w,h); }
+  }
   c.restore();
 }
 const thumbs={};
@@ -4317,7 +5093,9 @@ function sceneThumb(id,w,h){
   if(thumbs[key]) return thumbs[key];
   const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
   paintScene(cv.getContext('2d'),id,w,h,0,0,1);
-  return thumbs[key]=cv;
+  // only keep it once it is the real thing
+  if(photo(id) || PHOTO_SCENES.indexOf(id)<0) thumbs[key]=cv;
+  return cv;
 }
 let scene='classic', sceneFrom='classic', sceneT=1, sceneStep=0;
 // the scenes a scene ledge may take you to: your favourites, or all of them if you have none
@@ -4927,6 +5705,8 @@ function frame(now){
   if(screen==='play'){
     if(freeze>0) freeze-=dt; else step(dt);
     stepFx(dt); draw(now);
+  } else if(screen==='dash'&&dash){
+    dashStep(dt); dashDraw(now); stepFx(dt); drawFx();
   } else { stepFx(dt); drawFx(); }
   paintRail();
   stepScreenFx(dt); drawScreenFx();      // banners and confetti sit above it all
@@ -4956,6 +5736,438 @@ function paintRail(){
   if(busy===railBusy) return;
   railBusy=busy;
   $('rail').classList.toggle('busy',busy);
+}
+
+/* ===================================================================== dash
+   The second game. You pick one of the places and run straight through it,
+   and the only thing you do is not hit what is in the way.
+
+   It shares everything it sensibly can with the climb - the same places, the
+   same photographs, the same sounds, the same purse - and nothing it should
+   not. The climb's physics, camera and input all stay where they are; `dash`
+   is a separate state with its own step and its own draw, and when it is null
+   none of this code runs at all.
+
+   The road is drawn in fake perspective, which is a single line of maths:
+   everything at depth z is scaled by 1/(1+z/DEPTH), so z=0 is the plane the
+   runner stands on and z=infinity is the vanishing point on the horizon.
+   Positions across the road are -1 to 1, whatever the depth, so the lanes
+   and the collisions are all in those units and never in pixels.          */
+
+const DASH_LANES = [-0.78, -0.39, 0, 0.39, 0.78];
+const DASH_DEPTH = 30;          // how fast things shrink into the distance
+const DASH_HORIZON = 0.42;      // where the road meets the sky, as a fraction of h
+const DASH_PLANE = 0.88;        // where the runner's feet are
+const DASH_HALF = 0.46;         // half the road's width at the runner, as a fraction of w
+const DASH_SPAWN_Z = 62;        // how far ahead obstacles appear
+const DASH_PW = 0.135;          // the runner's half-width, in road units
+const DASH_VX = 2.1;            // how fast you can cross the road
+const DASH_START = 15;          // metres a second at the start
+const DASH_TOP = 38;            // and the most it ever gets to
+
+let dash = null;
+let dashPick = 'canyon';
+let dashBest = store.get('dashBest', 0);
+let dashPtr = false;
+
+const dashProj = z => 1 / (1 + Math.max(z, -DASH_DEPTH * 0.9) / DASH_DEPTH);
+
+/* Speed, row spacing and how many lanes get blocked all ramp with distance.
+   The first two hundred metres are deliberately gentle: one lane blocked out
+   of five, slow enough to read, because a runner that kills you before you
+   have understood the controls is not difficult, it is just rude. */
+const dashSpeed = m => Math.min(DASH_TOP, DASH_START + m * 0.014);
+const dashGap = m => Math.max(7.5, 15 - m * 0.0042);
+const dashBlocked = m => (m < 220 ? 1 : m < 700 ? 2 : m < 1500 ? 2 : 3);
+
+function dashStart(place) {
+  dashPick = place || dashPick;
+  dash = {
+    place: dashPick,
+    x: 0, vx: 0,
+    m: 0,                       // metres run
+    obstacles: [],
+    gems: [],
+    sparks: [],                 // shards off a diamond you have just hit
+    pops: [],                   // and the number that comes off it
+    nextZ: 28,
+    over: false,
+    endT: 0,
+    shake: 0,
+    coins: 0,
+    t: 0
+  };
+  screen = 'dash'; phase = 'dead';
+  hidePanels();
+  /* Not the climb's HUD. It reads "Level 1 - 0 Points" over a game that has
+     neither, and the distance this one does have is drawn on the canvas. The
+     way out stays, because there has to be one. */
+  elHud.classList.remove('on'); elQuit.classList.add('on');
+  elGoalWrap.classList.add('hide');
+  elHint.textContent = 'Steer left and right - do not hit anything';
+  audioOn();
+  tone(420, .1, 'triangle', .22, 760);
+}
+
+/* One row of obstacles, and sometimes a gem in a lane that is still free.
+   A row always leaves at least two lanes open, so there is never a wall. */
+function dashRow(z, m) {
+  const free = DASH_LANES.map((_, i) => i);
+  const blocked = Math.min(dashBlocked(m), DASH_LANES.length - 2);
+  for (let k = 0; k < blocked; k++) {
+    const pick = free.splice(Math.floor(Math.random() * free.length), 1)[0];
+    dash.obstacles.push({
+      z, x: DASH_LANES[pick],
+      w: 0.15 + Math.random() * 0.06,
+      hi: 0.5 + Math.random() * 0.45,
+      hit: false,
+      ci: Math.floor(Math.random() * COLORS.length)
+    });
+  }
+  if (free.length && Math.random() < 0.55) {
+    const pick = free[Math.floor(Math.random() * free.length)];
+    dash.gems.push({ z: z + (Math.random() - .5) * 3, x: DASH_LANES[pick], got: false, prize: Math.random() < luckOdds() });
+  }
+}
+
+function dashStep(dt) {
+  const d = dash;
+  d.t += dt;
+  if (d.shake > 0) d.shake = Math.max(0, d.shake - dt * 26);
+
+  if (d.over) { d.endT += dt; return; }
+
+  const speed = dashSpeed(d.m);
+  d.m += speed * dt;
+
+  /* Steering. A finger on the glass drags the runner to where it is; the
+     keys and a controller's pad push instead. Both end in the same place. */
+  if (dashPtr) {
+    const want = clamp((ptrX / W) * 2 - 1, -1, 1);
+    const step = clamp((want - d.x) * 7, -DASH_VX, DASH_VX);
+    d.x += step * dt;
+    d.vx = step;
+  } else {
+    const want = (keyR ? 1 : 0) - (keyL ? 1 : 0);
+    d.vx += (want * DASH_VX - d.vx) * Math.min(1, dt * 11);
+    d.x += d.vx * dt;
+  }
+  if (d.x < -1) { d.x = -1; d.vx = 0; }
+  if (d.x > 1) { d.x = 1; d.vx = 0; }
+
+  // lay down the road ahead
+  while (d.nextZ < DASH_SPAWN_Z) {
+    dashRow(d.nextZ, d.m);
+    d.nextZ += dashGap(d.m);
+  }
+  d.nextZ -= speed * dt;
+
+  // bring the world towards you, and see what you ran into
+  for (const o of d.obstacles) {
+    o.z -= speed * dt;
+    if (!o.hit && o.z < 0.9 && o.z > -1.4 && Math.abs(o.x - d.x) < o.w + DASH_PW) {
+      o.hit = true;
+      dashCrash(o);
+      return;
+    }
+  }
+  for (const g of d.gems) {
+    g.z -= speed * dt;
+    if (!g.got && g.z < 1.0 && g.z > -1.2 && Math.abs(g.x - d.x) < 0.22) {
+      g.got = true;
+      const n = addCoins((g.prize ? 12 : 3) * coinMult());
+      d.coins += n;
+      bumpStat('gems', 1);
+      tone(g.prize ? 880 : 660, .09, 'triangle', .2, g.prize ? 1320 : 990);
+      dashSmash(g, n);
+    }
+  }
+  // shards fall and slow; the number lifts and fades
+  for (const sp of d.sparks) {
+    sp.life -= dt * 2.0;
+    sp.x += sp.vx * dt; sp.y += sp.vy * dt;
+    sp.vy += 620 * dt;
+    sp.vx -= sp.vx * Math.min(1, dt * 1.8);
+    sp.rot += sp.vr * dt;
+  }
+  if (d.sparks.length) d.sparks = d.sparks.filter(sp => sp.life > 0);
+  for (const q of d.pops) { q.life -= dt * 1.7; q.y -= 52 * dt; q.flash = Math.max(0, q.flash - dt * 9); }
+  if (d.pops.length) d.pops = d.pops.filter(q => q.life > 0);
+
+  if (d.obstacles.length > 90) d.obstacles = d.obstacles.filter(o => o.z > -6);
+  if (d.gems.length > 60) d.gems = d.gems.filter(g => g.z > -6 && !g.got);
+
+  hapDash(d);
+}
+
+/* Hitting a diamond.
+
+   It used to just stop being drawn, which read as the thing deleting itself
+   half a metre in front of you rather than as you running into it. Nothing
+   about the collection changed here - only what you see when it happens: the
+   diamond comes apart into shards that carry on the way they were going,
+   a ring goes out from the point of contact, the number it was worth lifts
+   off it, and the road takes a small knock. All of it is screen space, which
+   is fair enough because the hit always happens within a metre of the
+   runner, where the perspective is as good as flat. */
+function dashSmash(g, n) {
+  const d = dash;
+  const hy = H * DASH_HORIZON, py = H * DASH_PLANE;
+  const sc = dashProj(g.z);
+  const r = Math.max(1.5, W * DASH_HALF * sc * .085);
+  const x = W / 2 + g.x * W * DASH_HALF * sc;
+  const y = hy + (py - hy) * sc - r * 2.2;
+  const col = g.prize ? '#FF5FA8' : '#FFC93C';
+
+  const count = g.prize ? 22 : 16;
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * 6.283 + Math.random() * .5;
+    const sp = 130 + Math.random() * 230;
+    d.sparks.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      // biased upward and back, the way debris off something you ran through goes
+      vy: Math.sin(a) * sp * .7 - 150,
+      life: 1,
+      // a broken diamond leaves pieces of itself, so these are a real
+      // fraction of the thing that broke rather than dust
+      size: r * (.30 + Math.random() * .45),
+      col: i % 2 ? col : '#FFFFFF',
+      rot: Math.random() * 6.283, vr: (Math.random() - .5) * 16
+    });
+  }
+  // and a flash at the point of contact, gone almost at once
+  d.pops.push({ x, y, str: '+' + n, col, life: 1, ring: r, flash: 1 });
+  d.shake = Math.max(d.shake, g.prize ? 5 : 3);
+  hap('grab');
+}
+
+/* A tap on the road every so often, so speed is something you feel rather
+   than only read off the metre counter. */
+let dashHapAt = 0;
+function hapDash(d) {
+  if (d.m - dashHapAt < 24) return;
+  dashHapAt = d.m;
+  hap('land');
+}
+
+function dashCrash(o) {
+  const d = dash;
+  d.over = true; d.endT = 0; d.shake = 20;
+  flash = .7; flashCol = '255,77,99';
+  tone(170, .26, 'square', .3, 80); noise(.2, .32);
+  hap('death');
+
+  const m = Math.floor(d.m);
+  const pb = m > dashBest;
+  if (pb) { dashBest = m; store.set('dashBest', dashBest); }
+  addXp(Math.round(m * 0.4));
+  bestStat('dashBest', m);
+  saveStats();
+
+  $('dDist').innerHTML = m + '<em>m</em>';
+  $('dEndTag').textContent = pb ? 'A new best' : 'You hit something';
+  $('dEndSub').textContent = pb
+    ? (d.coins ? 'Best yet - and ' + d.coins + ' coins' : 'Best yet')
+    : 'Best ' + dashBest + 'm' + (d.coins ? ' - ' + d.coins + ' coins' : '');
+  if (pb) { banner('NEW BEST', m + ' metres', '#FFE08A', { size: 40, hold: .9 }); domRain(26, PARTY); }
+  setTimeout(() => { if (dash && dash.over) $('dashEnd').classList.remove('hide'); }, 700);
+}
+
+function dashQuit() {
+  dash = null;
+  elHud.classList.remove('on'); elQuit.classList.remove('on');
+  elGoalWrap.classList.remove('hide');
+  flash = 0;
+}
+
+/* ------------------------------------------------------------- drawing it */
+function dashDraw(now) {
+  const d = dash, hy = H * DASH_HORIZON, py = H * DASH_PLANE;
+  ctx.save();
+  if (d.shake > .2) ctx.translate((Math.random() - .5) * d.shake, (Math.random() - .5) * d.shake);
+
+  // the place you chose, as the world you are running through
+  paintScene(ctx, d.place, W, H, d.m * 0.35, now, 1);
+
+  const yAt = z => hy + (py - hy) * dashProj(z);
+  const halfAt = z => W * DASH_HALF * dashProj(z);
+  const xAt = (tx, z) => W / 2 + tx * halfAt(z);
+
+  // the ground, and the road laid on it
+  const gg = ctx.createLinearGradient(0, hy, 0, H);
+  gg.addColorStop(0, 'rgba(10,14,42,.20)');
+  gg.addColorStop(.35, 'rgba(8,12,38,.62)');
+  gg.addColorStop(1, 'rgba(6,10,32,.86)');
+  ctx.fillStyle = gg; ctx.fillRect(0, hy, W, H - hy);
+
+  const zNear = -2.4, zFar = 150;
+  ctx.beginPath();
+  ctx.moveTo(xAt(-1, zNear), yAt(zNear));
+  ctx.lineTo(xAt(-1, zFar), yAt(zFar));
+  ctx.lineTo(xAt(1, zFar), yAt(zFar));
+  ctx.lineTo(xAt(1, zNear), yAt(zNear));
+  ctx.closePath();
+  const rg = ctx.createLinearGradient(0, yAt(zFar), 0, yAt(zNear));
+  rg.addColorStop(0, 'rgba(24,32,74,.70)');
+  rg.addColorStop(1, 'rgba(16,22,56,.92)');
+  ctx.fillStyle = rg; ctx.fill();
+
+  /* Rungs across the road rather than a dashed centre line: they are what
+     make the speed legible, and they are the same rungs the climb has. */
+  const STRIDE = 6;
+  const first = STRIDE - (d.m % STRIDE);
+  ctx.fillStyle = 'rgba(120,170,255,.16)';
+  for (let k = 0; k < 26; k++) {
+    const z = first + k * STRIDE;
+    if (z > 140) break;
+    const y0 = yAt(z), y1 = yAt(z + STRIDE * .42);
+    if (y0 - y1 < .35) continue;
+    ctx.beginPath();
+    ctx.moveTo(xAt(-1, z), y0); ctx.lineTo(xAt(1, z), y0);
+    ctx.lineTo(xAt(1, z + STRIDE * .42), y1); ctx.lineTo(xAt(-1, z + STRIDE * .42), y1);
+    ctx.closePath(); ctx.fill();
+  }
+
+  // the edges, bright enough to tell you where the road stops
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(xAt(side, zNear), yAt(zNear));
+    ctx.lineTo(xAt(side, zFar), yAt(zFar));
+    ctx.strokeStyle = 'rgba(63,200,255,.55)'; ctx.lineWidth = 2; ctx.stroke();
+  }
+  ctx.lineWidth = 1;
+
+  /* Everything on the road, drawn far to near so the near things overlap.
+     Gems and obstacles share one sorted pass for the same reason. */
+  const things = [];
+  for (const o of d.obstacles) if (o.z > -2 && o.z < 150) things.push({ z: o.z, o });
+  for (const g of d.gems) if (!g.got && g.z > -2 && g.z < 150) things.push({ z: g.z, g });
+  things.sort((a, b) => b.z - a.z);
+
+  for (const t of things) {
+    const s = dashProj(t.z), y = yAt(t.z);
+    if (t.o) {
+      const o = t.o;
+      const bw = halfAt(t.z) * o.w, bh = (py - hy) * s * .52 * o.hi;
+      const col = COLORS[o.ci];
+      ctx.globalAlpha = o.hit ? .35 : 1;
+      // a slab, lit on top, with a dark face - the climb's blocks, stood up
+      ctx.fillStyle = col.body;
+      roundRect(xAt(o.x, t.z) - bw, y - bh, bw * 2, bh, Math.max(1, 5 * s));
+      ctx.fill();
+      ctx.fillStyle = col.lite;
+      roundRect(xAt(o.x, t.z) - bw, y - bh, bw * 2, Math.max(1.2, bh * .18), Math.max(1, 4 * s));
+      ctx.fill();
+      ctx.fillStyle = 'rgba(8,12,36,.35)';
+      roundRect(xAt(o.x, t.z) - bw, y - bh * .22, bw * 2, bh * .22, Math.max(1, 3 * s));
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    } else {
+      const g = t.g;
+      // the last few metres it swells and spins faster, so the hit is
+      // something you watch arrive rather than something that just stops
+      const near = clamp(1 - t.z / 9, 0, 1);
+      const r = Math.max(1.5, halfAt(t.z) * .085) * (1 + near * near * .5);
+      const yy = y - r * 2.2 - Math.sin(d.t * 3 + t.z) * r * .5;
+      ctx.save(); ctx.translate(xAt(g.x, t.z), yy); ctx.rotate(d.t * (2 + near * 6));
+      const gcol = g.prize ? '#FF5FA8' : '#FFC93C';
+      if (near > .2) { ctx.shadowColor = gcol; ctx.shadowBlur = 10 * near; }
+      ctx.fillStyle = gcol;
+      ctx.beginPath();
+      ctx.moveTo(0, -r); ctx.lineTo(r * .8, 0); ctx.lineTo(0, r); ctx.lineTo(-r * .8, 0);
+      ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0;
+      // a facet, so it reads as cut glass rather than a flat lozenge
+      ctx.fillStyle = 'rgba(255,255,255,.55)';
+      ctx.beginPath();
+      ctx.moveTo(0, -r); ctx.lineTo(r * .34, -r * .12); ctx.lineTo(0, r * .1); ctx.lineTo(-r * .34, -r * .12);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // the runner
+  /* What is left of the diamonds you hit. Drawn after the road and before
+     the runner, so shards pass in front of the obstacles they came off but
+     never over the cube itself. */
+  for (const q of d.pops) {
+    const k = 1 - q.life;
+    const cy = q.y + 52 * k * .6;
+    if (q.flash > 0) {
+      ctx.globalAlpha = q.flash * .9;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath(); ctx.arc(q.x, cy, q.ring * (1 + (1 - q.flash) * 1.6), 0, 6.283); ctx.fill();
+    }
+    // one ring, out and gone - a shockwave that hangs about stops reading as
+    // an impact and starts reading as a bubble
+    if (k < .5) {
+      ctx.globalAlpha = (1 - k * 2) * .85;
+      ctx.strokeStyle = q.col; ctx.lineWidth = Math.max(1, 3.5 * (1 - k * 2));
+      ctx.beginPath(); ctx.arc(q.x, cy, q.ring * (1 + k * 5), 0, 6.283); ctx.stroke();
+    }
+  }
+  ctx.lineWidth = 1;
+
+  for (const sp of d.sparks) {
+    ctx.globalAlpha = Math.min(1, sp.life * 1.5);
+    ctx.save(); ctx.translate(sp.x, sp.y); ctx.rotate(sp.rot);
+    ctx.fillStyle = sp.col;
+    // shards, not dots: a broken diamond leaves splinters
+    ctx.beginPath();
+    ctx.moveTo(0, -sp.size); ctx.lineTo(sp.size * .55, 0);
+    ctx.lineTo(0, sp.size * .8); ctx.lineTo(-sp.size * .55, 0);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+
+  /* Drawn exactly as wide as it is judged. This used to carry a 1.5, so the
+     cube overlapped obstacles it had legitimately cleared - the worst kind of
+     unfair, because the picture said you were hit and the rules said you were
+     not. */
+  const rs = dashProj(0), rw = W * DASH_HALF * rs * DASH_PW;
+  const rx = xAt(d.x, 0), ry = yAt(0);
+  const lean = clamp(d.vx * .12, -.3, .3);
+  ctx.save();
+  ctx.translate(rx, ry - rw * 1.1);
+  ctx.rotate(lean);
+  if (!d.over) {
+    ctx.globalAlpha = .3; ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.ellipse(0, rw * 1.25, rw * 1.1, rw * .3, 0, 0, 6.283); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  // a skin carries body and edge but no highlight, so the climb builds the
+  // third colour at the call site. Same here, or cube() reads an undefined
+  // colour stop and throws.
+  const sk = curSkin();
+  cube(0, 0, rw * 2, { body: sk.body, lite: '#FFFFFF', edge: sk.edge }, 18, false);
+  ctx.restore();
+
+  // and what each one was worth, lifting off where it broke
+  for (const q of d.pops) {
+    ctx.globalAlpha = Math.min(1, q.life * 1.8);
+    ctx.font = '900 ' + Math.round(16 + q.ring * .5) + 'px "Baloo 2",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(6,10,36,.55)';
+    ctx.fillText(q.str, q.x + 1, q.y + 1);
+    ctx.fillStyle = q.col;
+    ctx.fillText(q.str, q.x, q.y);
+  }
+  ctx.globalAlpha = 1; ctx.textAlign = 'left';
+
+  // distance, big, where the climb puts its height
+  ctx.font = '900 34px "Baloo 2",sans-serif'; ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(6,10,36,.5)';
+  ctx.fillText(Math.floor(d.m) + 'm', W / 2 + 1, H * .13 + 1);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText(Math.floor(d.m) + 'm', W / 2, H * .13);
+  ctx.font = '800 12px "Nunito",sans-serif';
+  ctx.fillStyle = 'rgba(220,230,255,.75)';
+  ctx.fillText('BEST ' + dashBest + 'M  ·  ' + Math.round(dashSpeed(d.m)) + ' M/S', W / 2, H * .155);
+  ctx.textAlign = 'left';
+
+  ctx.restore();
 }
 
 /* =================================================================== menu */
@@ -5132,6 +6344,7 @@ function hidePanels(){
   $('brief').classList.add('hide'); $('daily').classList.add('hide'); $('shop').classList.add('hide');
   $('reward').classList.add('hide'); $('drops').classList.add('hide');
   $('badges').classList.add('hide'); $('league').classList.add('hide'); $('profile').classList.add('hide');
+  $('dash').classList.add('hide'); $('dashEnd').classList.add('hide');
 }
 function untilReset(){
   const now=new Date(), mid=new Date(now); mid.setHours(24,0,0,0);
@@ -5461,6 +6674,14 @@ function buildProfile(){
     sw.appendChild(b);
   }
   const grid=$('pScenes');
+  if(grid.children.length && thumbsStale){
+    // a photograph finished decoding after these buttons were drawn
+    thumbsStale=false;
+    for(const b of grid.children){
+      const cv=b.querySelector('canvas');
+      if(cv) cv.getContext('2d').drawImage(sceneThumb(b.dataset.id,240,180),0,0);
+    }
+  }
   if(!grid.children.length) for(const s of SCENES){
     const b=document.createElement('button');
     b.className='scene'; b.dataset.id=s.id;
@@ -5511,6 +6732,7 @@ $('openProfile').addEventListener('click',e=>{ e.stopPropagation(); openProfile(
 $('pBack').addEventListener('click',e=>{ e.stopPropagation(); toMenu(); });
 
 function toMenu(){
+  if(dash) dashQuit();
   if(screen==='play'&&phase==='run'&&!tutorial){ bankCoins(); bankBest(); }  // quitting keeps the metres and the coins
   tutorial=false; elGoalWrap.classList.remove('hide');
   saveDaily();
@@ -5552,21 +6774,23 @@ function canvasY(e){ const r=cab.getBoundingClientRect(); return (e.clientY-r.to
 
 cab.addEventListener('pointerdown',e=>{
   if(e.target.closest('button')) return;
+  if(screen==='dash'){ e.preventDefault(); dashPtr=true; ptrX=canvasX(e); return; }
   if(screen!=='play') return;
   e.preventDefault();
   ptrDown=true; ptrX=ptrDownX=canvasX(e); ptrDownT=performance.now();
   press('pointer');
 });
 cab.addEventListener('pointermove',e=>{
-  if(ptrDown) ptrX=canvasX(e);
+  if(ptrDown||dashPtr) ptrX=canvasX(e);
 });
 addEventListener('pointerup',e=>{
+  dashPtr=false;
   // a quick tap on a platform is the jump; a drag is the walk
   if(ground&&ptrDown&&screen==='play'&&phase==='run'&&
      performance.now()-ptrDownT<280&&Math.abs(canvasX(e)-ptrDownX)<20) hop();
   lift();
 });
-addEventListener('pointercancel',()=>{ lift(); });
+addEventListener('pointercancel',()=>{ dashPtr=false; lift(); });
 addEventListener('blur',()=>{ keyL=keyR=false; lift(); });
 addEventListener('keydown',e=>{
   if(e.code==='Escape'&&screen!=='menu'){ toMenu(); return; }
@@ -5576,6 +6800,12 @@ addEventListener('keydown',e=>{
   if(screen==='play'&&(phase==='dead'||phase==='summit')&&!elOver.classList.contains('hide')){
     if(e.code==='KeyR'){ e.preventDefault(); startLevel(lvIdx,endless); return; }
     if(e.code==='Space'||e.code==='Enter'){ e.preventDefault(); $('next').click(); return; }
+  }
+  if(screen==='dash'){
+    if(e.code==='ArrowLeft'||e.code==='KeyA'){ e.preventDefault(); keyL=true; }
+    if(e.code==='ArrowRight'||e.code==='KeyD'){ e.preventDefault(); keyR=true; }
+    if((e.code==='Space'||e.code==='Enter')&&dash&&dash.over&&!e.repeat){ e.preventDefault(); dashStart(); }
+    return;
   }
   if(screen!=='play') return;
   if(e.code==='ArrowLeft'||e.code==='KeyA'){ e.preventDefault(); keyL=true; if(!e.repeat&&phase==='run') worldArrow(-1); return; }
@@ -5627,43 +6857,71 @@ $('gDrops').addEventListener('click',e=>{ e.stopPropagation(); openDrops(); });
 $('openLeague').addEventListener('click',e=>{ e.stopPropagation(); openLeague(); });
 $('lBack').addEventListener('click',e=>{ e.stopPropagation(); toMenu(); });
 $('lBadges').addEventListener('click',e=>{ e.stopPropagation(); openBadges(); });
+/* ------------------------------------------------------- the dash panels
+   The picker is the profile's place grid with one difference: there you tick
+   as many favourites as you like, here you choose exactly one to run in. */
+function buildDashPicker(){
+  const grid=$('dScenes');
+  if(!grid.children.length) for(const sc of SCENES){
+    const b=document.createElement('button');
+    b.className='scene'; b.dataset.id=sc.id;
+    const cv=document.createElement('canvas'); cv.width=240; cv.height=180;
+    cv.getContext('2d').drawImage(sceneThumb(sc.id,240,180),0,0);
+    b.appendChild(cv);
+    const nm=document.createElement('span'); nm.className='nm'; nm.textContent=sc.name; b.appendChild(nm);
+    const tk=document.createElement('span'); tk.className='tick'; b.appendChild(tk);
+    b.addEventListener('click',ev=>{
+      ev.stopPropagation();
+      dashPick=sc.id; paintDashPick();
+      tone(620,.07,'triangle',.18,880);
+    });
+    grid.appendChild(b);
+  } else if(thumbsStale){
+    // a photograph landed after these were drawn
+    thumbsStale=false;
+    for(const b of grid.children){
+      const cv=b.querySelector('canvas');
+      if(cv) cv.getContext('2d').drawImage(sceneThumb(b.dataset.id,240,180),0,0);
+    }
+  }
+  paintDashPick();
+}
+function paintDashPick(){
+  for(const b of $('dScenes').children){
+    const on=b.dataset.id===dashPick;
+    b.classList.toggle('on',on);
+    b.setAttribute('aria-pressed',on);
+    // the profile's tick carries a favourite's position in the order; here
+    // there is only one choice, so it is a tick or it is nothing
+    b.querySelector('.tick').textContent = on ? '✓' : '';
+  }
+  $('dBest').textContent=dashBest;
+}
+function openDash(){
+  screen='menu'; phase='dead';
+  hidePanels(); buildDashPicker();
+  $('dash').classList.remove('hide'); $('dash').scrollTop=0;
+}
+$('openDash').addEventListener('click',e=>{ e.stopPropagation(); openDash(); });
+$('dBack').addEventListener('click',e=>{ e.stopPropagation(); toMenu(); });
+$('dGo').addEventListener('click',e=>{ e.stopPropagation(); dashStart(dashPick); });
+$('dEndBack').addEventListener('click',e=>{ e.stopPropagation(); toMenu(); });
+$('dAgain').addEventListener('click',e=>{ e.stopPropagation(); dashStart(); });
+
 $('tomenu').addEventListener('click',e=>{ e.stopPropagation(); toMenu(); });
 elQuit.addEventListener('click',e=>{ e.stopPropagation(); toMenu(); });
 
 /* =================================================================== boot */
+// the backdrops start decoding straight away; until each one is ready its
+// place is drawn rather than photographed, so nothing here is waited on
+preloadPhotos();
 placeRail(); resize(); toMenu();
 requestAnimationFrame(frame);
 // the very first time the game is opened, it teaches itself before the menu
 if(!tutDone && starTotal()===0) startTutorial();
 })();
 </script>
-
 <script>
-(async () => {
-  const C = window.Capacitor;
-  if (!C || !C.isNativePlatform || !C.isNativePlatform()) return;
-  const P = C.Plugins || {};
-  try { await P.StatusBar?.setOverlaysWebView({ overlay: true }); } catch (e) {}
-  try { await P.StatusBar?.setStyle({ style: 'DARK' }); } catch (e) {}
-  try { await P.SplashScreen?.hide(); } catch (e) {}
-  // a long press must not offer to select or copy the game
-  addEventListener('contextmenu', e => e.preventDefault());
-  // iOS pinch-to-zoom inside a webview
-  for (const ev of ['gesturestart', 'gesturechange', 'gestureend'])
-    addEventListener(ev, e => e.preventDefault());
-  // Android back: out of a panel, or out of the app when already home
-  try {
-    await P.App?.addListener('backButton', () => {
-      const menu = document.getElementById('menu');
-      const atHome = menu && !menu.classList.contains('hide');
-      if (atHome) P.App.exitApp();
-      else dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', bubbles: true }));
-    });
-  } catch (e) {}
-})();
-</script>
-
-<script>
-if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()))
+if ('serviceWorker' in navigator)
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 </script>
